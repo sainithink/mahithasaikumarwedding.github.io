@@ -12,6 +12,9 @@
  *   { action: "delete", password, id }
  */
 
+// The spreadsheet the replies go to (the long ID in its URL, between /d/ and /edit).
+// Leave empty when the script is opened from the sheet via Extensions → Apps Script.
+const SHEET_ID = '1e6gmML4902r1Cwv2XBySAriMzI0Xl_1cBF9HLeZ3zas';
 const SHEET = 'RSVPs';
 const HEADERS = ['ID', 'Name', 'Phone / Email', 'Status', 'Adults', 'Children',
                  'Message', 'First replied', 'Last updated', 'Key'];
@@ -125,7 +128,7 @@ function deleteRsvp(id) {
 // ── helpers ───────────────────────────────────────────────────────────────
 
 function sheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SHEET_ID ? SpreadsheetApp.openById(SHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
   let sh = ss.getSheetByName(SHEET);
   if (!sh) {
     sh = ss.insertSheet(SHEET);
