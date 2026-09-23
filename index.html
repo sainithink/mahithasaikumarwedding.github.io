@@ -226,6 +226,20 @@ h2{font-family:var(--display);font-weight:400;color:var(--sindoor);font-size:cla
 .thanks{text-align:center}
 .thanks .te{color:var(--sindoor);font-size:26px}
 .thanks h3{font-family:var(--display);font-weight:400;color:var(--sindoor);font-size:34px;margin:4px 0}
+.gifts{margin-top:26px;padding-top:22px;border-top:2px dashed var(--line);text-align:left}
+.gifts .eyebrow{text-align:center}
+.gifts-intro{font-size:17px;font-style:italic;color:var(--muted);text-align:center;margin:6px 0 10px}
+#gift-list{list-style:none}
+.gift{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid rgba(201,152,42,.3)}
+.gift:last-child{border-bottom:0}
+.gift b{display:block;font-family:var(--display);font-weight:400;font-size:21px;color:var(--sindoor);line-height:1.25}
+.gift .meta{font-size:15px;color:var(--muted);line-height:1.4}
+.gift .meta a{color:var(--peacock)}
+.gift .btn{flex:none;width:auto;margin:0;padding:9px 14px;font-size:11px}
+.gift .tag{flex:none;font-family:var(--caps);font-size:11px;letter-spacing:.12em;padding:6px 12px;border-radius:14px;background:var(--cream-2);color:var(--muted)}
+.gift .tag.mine{background:var(--leaf);color:#fff}
+.gift.taken b{color:var(--muted)}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:15px;cursor:pointer;margin-top:18px}
 
 /* footer: red carpet */
 footer{position:relative;text-align:center;color:var(--cream);
@@ -567,6 +581,16 @@ footer small{display:block;margin-top:18px;color:#ffd9a0;font-size:16px;font-sty
       <div class="te">ధన్యవాదాలు</div>
       <h3>Thank you</h3>
       <p id="thanks-msg" style="color:var(--muted)"></p>
+
+      <div class="gifts hide" id="gifts">
+        <div class="eyebrow">Gift Wishlist · కానుకలు</div>
+        <p class="gifts-intro">Your blessings are the greatest gift. If you'd still like to give something,
+          here are a few things we'd love — tap <b>I'll gift this</b> so no one else picks the same.</p>
+        <ul id="gift-list"></ul>
+        <p class="form-note" id="gift-note"></p>
+      </div>
+
+      <button type="button" class="linkish" id="edit-rsvp">Change my reply</button>
     </div>
   </div>
 </section>
@@ -703,9 +727,21 @@ const CONFIG = {
   };
 })();
 
-/* RSVP: send the reply to the Google Sheet (config.js) and say thank you */
+/* RSVP: send the reply to the Google Sheet (config.js), say thank you, then show
+   the gift wishlist. The reply is remembered on this device so the list is still
+   there when the guest comes back. */
 (function(){
-  const f = document.getElementById("rsvp-form");
+  const $ = id => document.getElementById(id);
+  const f = $("rsvp-form"), STORE = "sahi-rsvp";
+  const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  // text/plain keeps these "simple" requests, which Apps Script can accept cross-origin
+  const post = (body, keepalive) => fetch(window.RSVP_ENDPOINT, { method: "POST", keepalive,
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
+
+  let me = null;
+  try { me = JSON.parse(localStorage.getItem(STORE)); } catch (e) {}
+  const remember = () => { try { localStorage.setItem(STORE, JSON.stringify(me)); } catch (e) {} };
+
   const counts = { adults: 1, kids: 0 };
   f.querySelectorAll(".step").forEach(st => st.addEventListener("click", e => {
     const d = +e.target.dataset.d; if (!d) return;
@@ -714,25 +750,70 @@ const CONFIG = {
     st.querySelector("output").textContent = counts[k];
   }));
   f.querySelectorAll("[name=status]").forEach(r => r.addEventListener("change", () =>
-    document.getElementById("guests-field").classList.toggle("hide", f.status.value === "Can't Make It")));
+    $("guests-field").classList.toggle("hide", f.status.value === "Can't Make It")));
+
+  function showThanks(back) {
+    f.classList.add("hide");
+    $("thanks").classList.remove("hide");
+    $("thanks-msg").textContent = back ? `Welcome back, ${me.name} — thank you for your reply.`
+      : me.coming ? `We can't wait to see you, ${me.name}.`
+      : `We'll miss you, ${me.name} — thank you for your blessings.`;
+    loadGifts();
+  }
+
+  function renderGifts(gifts) {
+    $("gifts").classList.toggle("hide", !gifts.length);
+    $("gift-list").innerHTML = gifts.map(g => {
+      const mine = me.claimed.includes(g.id);
+      const meta = [g.price, g.note].filter(Boolean).map(esc).join(" · ");
+      const link = /^https?:\/\//i.test(g.link) ? ` <a href="${esc(g.link)}" target="_blank" rel="noopener">View ↗</a>` : "";
+      const act = mine ? `<span class="tag mine">You're gifting ✓</span>`
+        : g.reserved ? `<span class="tag">Reserved</span>`
+        : `<button type="button" class="btn solid" data-id="${g.id}">I'll gift this</button>`;
+      return `<li class="gift${g.reserved && !mine ? " taken" : ""}"><div><b>${esc(g.item)}</b>
+        <div class="meta">${meta}${link}</div></div>${act}</li>`;
+    }).join("");
+  }
+
+  async function loadGifts() {
+    if (!window.RSVP_ENDPOINT) return;
+    try { renderGifts((await (await post({ action: "gifts" })).json()).gifts || []); } catch (e) {}
+  }
+
+  $("gift-list").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-id]"); if (!b) return;
+    b.disabled = true; b.textContent = "Reserving…"; $("gift-note").textContent = "";
+    try {
+      const res = await (await post({ action: "claim", id: +b.dataset.id, name: me.name, contact: me.contact })).json();
+      if (res.error) { $("gift-note").textContent = res.error; return loadGifts(); }
+      me.claimed.push(+b.dataset.id); remember();
+      renderGifts(res.gifts);
+      $("gift-note").textContent = "Thank you! It's reserved for you — the couple will be delighted.";
+    } catch (err) {
+      b.disabled = false; b.textContent = "I'll gift this";
+      $("gift-note").textContent = "That didn't go through — please try again.";
+    }
+  });
+
+  $("edit-rsvp").onclick = () => {
+    f.name.value = me.name; f.contact.value = me.contact;
+    $("thanks").classList.add("hide"); f.classList.remove("hide");
+  };
 
   f.addEventListener("submit", e => {
     e.preventDefault();
     const name = f.name.value.trim();
-    if (!name) { f.name.focus(); document.getElementById("rsvp-note").textContent = "Please add your name."; return; }
-    const coming = f.status.value !== "Can't Make It";
-    // text/plain keeps this a "simple" request, which Apps Script can accept cross-origin
-    if (window.RSVP_ENDPOINT) fetch(window.RSVP_ENDPOINT, { method: "POST", keepalive: true,
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "rsvp", name, contact: f.contact.value.trim(), status: f.status.value,
-        adults: coming ? counts.adults : 0, kids: coming ? counts.kids : 0,
-        message: f.message.value.trim(), website: f.website.value }) }).catch(() => {});
-    f.classList.add("hide");
-    document.getElementById("thanks").classList.remove("hide");
-    document.getElementById("thanks-msg").textContent = coming
-      ? `We can't wait to see you, ${name}.`
-      : `We'll miss you, ${name} — thank you for your blessings.`;
+    if (!name) { f.name.focus(); $("rsvp-note").textContent = "Please add your name."; return; }
+    const coming = f.status.value !== "Can't Make It", contact = f.contact.value.trim();
+    if (window.RSVP_ENDPOINT) post({ action: "rsvp", name, contact, status: f.status.value,
+      adults: coming ? counts.adults : 0, kids: coming ? counts.kids : 0,
+      message: f.message.value.trim(), website: f.website.value }, true).catch(() => {});
+    me = { name, contact, coming, claimed: (me && me.claimed) || [] };
+    remember();
+    showThanks(false);
   });
+
+  if (me && me.name) { me.claimed = me.claimed || []; showThanks(true); }
 })();
 
 /* reveal on scroll + nav */

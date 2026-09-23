@@ -7,7 +7,7 @@ small Google Apps Script. That's free, and there's no server to run.
 | File | What it is |
 |---|---|
 | `index.html` | The wedding site. Date, times and venue are in `CONFIG` at the top of its script. |
-| `admin.html` | Password-protected guest list: totals, filters, search, CSV, print, delete. |
+| `admin.html` | Password-protected guest list (totals, filters, search, CSV, print, delete) and the gift wishlist editor. |
 | `config.js` | The one setting you must fill in: your Apps Script URL. |
 | `apps-script/Code.gs` | The RSVP backend. Paste it into Google Apps Script (step 1). |
 
@@ -49,6 +49,8 @@ window.RSVP_ENDPOINT = "https://script.google.com/macros/s/AKfy…/exec";
 A custom domain can be added in the same Pages settings.
 
 ## Good to know
+
+- **Gift wishlist:** add gifts on `admin.html`. Guests see the list after they RSVP and can reserve one; others then see it as "Reserved" (only you see who). Gifts live in the sheet's `Gifts` tab.
 
 - **The repo is public, and that's fine.** Replies live only in your Google Sheet. The password lives only in Script Properties, never in these files.
 - **Guests replying again** with the same phone or email (or the same name if they gave neither) update their earlier reply instead of being counted twice.

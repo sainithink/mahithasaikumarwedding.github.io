@@ -80,7 +80,24 @@ td .when{font-size:13px;color:var(--muted);white-space:nowrap}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);font-style:italic;background:var(--card);border:1px solid var(--line)}
 .foot{font-size:14px;color:var(--muted);margin-top:10px;text-align:right}
 
+.giftbox{margin-top:44px}
+.gift-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;border-bottom:2px solid var(--gold);padding-bottom:6px}
+.gift-head h2{font-weight:500;font-size:28px;color:var(--maroon)}
+#gift-count{font-size:15px;color:var(--muted);font-style:italic}
+.hint{font-size:15px;color:var(--muted);margin:8px 0 14px}
+.gift-form{display:grid;grid-template-columns:2fr 2fr 1fr 2fr auto;gap:8px}
+.gift-form input{border:1px solid var(--line);background:#fff;padding:9px 11px;font-size:16px;min-width:0}
+.gift-form input:focus{outline:none;border-color:var(--gold)}
+.gift-form .btn.solid{width:auto}
+#gift-err{text-align:left;margin:6px 0 8px}
+td .item{font-weight:600}
+td .item a{color:var(--maroon);font-weight:400;font-size:14px;margin-left:6px}
+td .sub{font-size:14px;color:var(--muted)}
+.mini{border:1px solid var(--line);background:transparent;color:var(--maroon);font-size:13px;padding:3px 9px;cursor:pointer;margin-left:6px;white-space:nowrap}
+.mini:hover{background:var(--paper-2)}
+
 @media (max-width:760px){
+  .gift-form{grid-template-columns:1fr}
   .stats{grid-template-columns:1fr 1fr}
   thead{display:none}
   table,tbody,tr,td{display:block;width:100%}
@@ -149,13 +166,34 @@ td .when{font-size:13px;color:var(--muted);white-space:nowrap}
     </table>
     <div class="empty hide" id="empty">No RSVPs yet.</div>
     <div class="foot" id="foot"></div>
+
+    <section class="giftbox">
+      <div class="gift-head">
+        <h2>Gift Wishlist</h2>
+        <span id="gift-count"></span>
+      </div>
+      <p class="hint">Guests see this list after they RSVP and can reserve an item, so no two people buy the same gift.</p>
+      <form id="gift-form" class="gift-form">
+        <input name="item" placeholder="Gift, e.g. Silver pooja thali" maxlength="120" required>
+        <input name="link" placeholder="Shop link (optional)" maxlength="500">
+        <input name="price" placeholder="Price (optional)" maxlength="40">
+        <input name="note" placeholder="Note (optional)" maxlength="300">
+        <button class="btn solid" type="submit">Add gift</button>
+      </form>
+      <div class="err" id="gift-err"></div>
+      <table>
+        <thead><tr><th>Gift</th><th>Reserved by</th><th></th></tr></thead>
+        <tbody id="gift-rows"></tbody>
+      </table>
+      <div class="empty hide" id="gift-empty">No gifts yet — add the first one above.</div>
+    </section>
   </main>
 </div>
 
 <script src="config.js"></script>
 <script>
 const API = window.RSVP_ENDPOINT;
-let all = [], filter = "all", password = "";
+let all = [], gifts = [], filter = "all", password = "";
 try { password = sessionStorage.getItem("sahi-pw") || ""; } catch (e) {}
 
 const $ = id => document.getElementById(id);
@@ -176,9 +214,9 @@ async function load() {
   try { res = await call({ action: "list" }); }
   catch (e) { $("foot").textContent = "Couldn't reach the RSVP sheet — retrying in 30s."; return true; }
   if (res.error) { forget(); showLogin(); $("login-err").textContent = res.error; return false; }
-  all = res.rsvps;
+  all = res.rsvps; gifts = res.gifts || [];
   $("login").classList.add("hide"); $("app").classList.remove("hide");
-  render();
+  render(); renderGifts();
   return true;
 }
 
@@ -217,6 +255,40 @@ function render() {
   $("empty").textContent = all.length ? "No replies match." : "No RSVPs yet.";
   $("foot").textContent = `Showing ${rows.length} of ${all.length} · refreshed ${new Date().toLocaleTimeString()}`;
 }
+
+function renderGifts() {
+  const taken = gifts.filter(g => g.reserved).length;
+  $("gift-count").textContent = gifts.length ? `${taken} of ${gifts.length} reserved` : "";
+  $("gift-rows").innerHTML = gifts.map(g => `<tr>
+    <td><div class="item">${esc(g.item)}${/^https?:\/\//i.test(g.link) ? `<a href="${esc(g.link)}" target="_blank" rel="noopener">link ↗</a>` : ""}</div>
+        <div class="sub">${[g.price, g.note].filter(Boolean).map(esc).join(" · ")}</div></td>
+    <td>${g.reserved ? `<div class="who">${esc(g.reservedBy)}</div><div class="contact">${esc(g.reservedContact)}</div>
+        <div class="when">${esc(when(g.reservedAt))}</div>` : `<span class="sub">Available</span>`}</td>
+    <td class="act">${g.reserved ? `<button class="mini" data-release="${g.id}" data-name="${esc(g.item)}">Unreserve</button>` : ""}
+        <button class="del" data-gift="${g.id}" data-name="${esc(g.item)}" title="Remove gift">×</button></td>
+  </tr>`).join("");
+  $("gift-empty").classList.toggle("hide", gifts.length > 0);
+}
+
+$("gift-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const f = e.target, btn = f.querySelector("button");
+  btn.disabled = true; $("gift-err").textContent = "";
+  const res = await call({ action: "addGift", item: f.item.value, link: f.link.value, price: f.price.value, note: f.note.value });
+  btn.disabled = false;
+  if (res.error) { $("gift-err").textContent = res.error; return; }
+  f.reset(); f.item.focus(); load();
+});
+
+$("gift-rows").onclick = async e => {
+  const del = e.target.closest("[data-gift]"), rel = e.target.closest("[data-release]");
+  if (del && confirm(`Remove "${del.dataset.name}" from the wishlist?`)) {
+    const res = await call({ action: "deleteGift", id: +del.dataset.gift }); if (res.error) alert(res.error); load();
+  }
+  if (rel && confirm(`Clear the reservation on "${rel.dataset.name}" so another guest can pick it?`)) {
+    const res = await call({ action: "releaseGift", id: +rel.dataset.release }); if (res.error) alert(res.error); load();
+  }
+};
 
 $("login-form").addEventListener("submit", async e => {
   e.preventDefault(); $("login-err").textContent = "Checking…";
