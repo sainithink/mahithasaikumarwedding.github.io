@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Guest List · SaHi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@500;600&family=Tiro+Telugu&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#6e1423; --maroon-deep:#4a0d17; --kumkum:#b3202e;
+  --gold:#b8862b; --gold-soft:#d9b25f; --leaf:#3f6b2a;
+  --paper:#fbf4e4; --paper-2:#f5e8cc; --card:#fffaf0; --ink:#3b1a14; --muted:#7a5a4a;
+  --line:rgba(184,134,43,.45);
+  --serif:"Cormorant Garamond",Georgia,serif; --caps:"Cinzel",serif; --te:"Tiro Telugu",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:18px;line-height:1.5;min-height:100vh}
+.caps{font-family:var(--caps);letter-spacing:.16em;text-transform:uppercase}
+.hide{display:none!important}
+button,input{font:inherit;color:inherit}
+
+/* login */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login form{width:min(380px,100%);background:var(--card);border:1px solid var(--gold);outline:1px solid var(--line);outline-offset:6px;padding:34px 28px;text-align:center}
+.login h1{font-weight:500;color:var(--maroon);font-size:34px;margin:4px 0 18px}
+.login .te{font-family:var(--te);color:var(--kumkum)}
+.login input{width:100%;border:1px solid var(--line);background:#fff;padding:11px 12px;font-size:18px;margin-bottom:12px}
+.login input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,43,.18)}
+.err{color:var(--kumkum);font-size:15px;min-height:22px;margin-top:8px}
+
+.btn{font-family:var(--caps);font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:10px 16px;border:1px solid var(--gold);background:transparent;color:var(--maroon);cursor:pointer;text-decoration:none;display:inline-block;white-space:nowrap}
+.btn:hover{background:var(--gold);color:#fff}
+.btn.solid{background:var(--maroon);border-color:var(--maroon);color:#fbe6b8;width:100%}
+.btn.solid:hover{background:var(--maroon-deep)}
+
+/* list */
+header{background:var(--maroon);color:#fbe6b8;padding:22px 20px}
+header .in{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h1{font-weight:500;font-size:30px;line-height:1.1}
+header small{color:var(--gold-soft);font-style:italic;font-size:15px}
+header .btn{color:#fbe6b8;border-color:var(--gold-soft)}
+header .btn:hover{background:var(--gold-soft);color:var(--maroon-deep)}
+main{max-width:1100px;margin:0 auto;padding:24px 16px 60px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);padding:16px 16px 14px}
+.stat b{display:block;font-family:var(--caps);font-weight:500;font-size:32px;color:var(--maroon);line-height:1.1}
+.stat span{font-size:11px;color:var(--gold)}
+.stat em{display:block;font-size:14px;color:var(--muted)}
+.stat.main{background:var(--maroon);border-color:var(--maroon)}
+.stat.main b{color:#fff4dc}.stat.main span{color:var(--gold-soft)}.stat.main em{color:#e8cf9f}
+
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.tabs{display:flex;border:1px solid var(--line);background:var(--card)}
+.tabs button{border:0;background:transparent;padding:9px 12px;cursor:pointer;font-size:15px;border-right:1px solid var(--line)}
+.tabs button:last-child{border-right:0}
+.tabs button.on{background:var(--maroon);color:#fbe6b8}
+.bar input{flex:1;min-width:180px;border:1px solid var(--line);background:#fff;padding:9px 12px;font-size:16px}
+.bar input:focus{outline:none;border-color:var(--gold)}
+
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line)}
+th{font-family:var(--caps);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--maroon);text-align:left;padding:12px 12px;border-bottom:1px solid var(--gold);background:var(--paper-2);position:sticky;top:0}
+td{padding:12px;border-bottom:1px solid rgba(184,134,43,.22);vertical-align:top;font-size:17px}
+tr:last-child td{border-bottom:0}
+td.num{text-align:center;font-family:var(--caps);color:var(--maroon)}
+th.num{text-align:center}
+td .who{font-weight:600;color:var(--ink)}
+td .contact{font-size:14px;color:var(--muted);word-break:break-all}
+td .msg{font-style:italic;color:var(--muted);font-size:16px;max-width:320px}
+td .when{font-size:13px;color:var(--muted);white-space:nowrap}
+.pill{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.pill.a{background:rgba(63,107,42,.14);color:var(--leaf)}
+.pill.m{background:rgba(227,162,26,.18);color:#8a5c0a}
+.pill.n{background:rgba(179,32,46,.10);color:var(--kumkum)}
+.del{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:18px;padding:0 4px}
+.del:hover{color:var(--kumkum)}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);font-style:italic;background:var(--card);border:1px solid var(--line)}
+.foot{font-size:14px;color:var(--muted);margin-top:10px;text-align:right}
+
+@media (max-width:760px){
+  .stats{grid-template-columns:1fr 1fr}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tr{border-bottom:1px solid var(--line);padding:12px 14px;position:relative}
+  td{border:0;padding:2px 0}
+  td.num{display:inline-block;width:auto;text-align:left;margin-right:14px;font-size:15px}
+  td.num:before{content:attr(data-l) " ";font-family:var(--serif);color:var(--muted)}
+  td.act{position:absolute;top:10px;right:10px;width:auto}
+  .tabs{width:100%}.tabs button{flex:1;padding:9px 4px;font-size:14px}
+}
+@media print{
+  header .btn,.bar,.del,.foot{display:none!important}
+  header{background:none;color:var(--maroon);padding:0 0 10px}
+  body{background:#fff}
+}
+</style>
+</head>
+<body>
+
+<section class="login" id="login">
+  <form id="login-form">
+    <div class="te">శుభమస్తు</div>
+    <h1>Guest List</h1>
+    <input type="password" id="pw" placeholder="Password" autocomplete="current-password" required>
+    <button class="btn solid" type="submit">Sign in</button>
+    <div class="err" id="login-err"></div>
+  </form>
+</section>
+
+<div id="app" class="hide">
+  <header>
+    <div class="in">
+      <div>
+        <h1>Mahitha &amp; Sai Kumar · RSVPs</h1>
+        <small>Sunday, 22 November 2026 · Aria University, Milpitas</small>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="csv">Download CSV</button>
+        <button class="btn" onclick="print()">Print</button>
+        <button class="btn" id="logout">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat main"><span class="caps">Attending</span><b id="st-guests">0</b><em id="st-guests-sub"></em></div>
+      <div class="stat"><span class="caps">Might attend</span><b id="st-maybe">0</b><em id="st-maybe-sub"></em></div>
+      <div class="stat"><span class="caps">Can't make it</span><b id="st-no">0</b><em>replies</em></div>
+      <div class="stat"><span class="caps">Total replies</span><b id="st-total">0</b><em id="st-total-sub"></em></div>
+    </div>
+
+    <div class="bar">
+      <div class="tabs" id="tabs">
+        <button data-f="all" class="on">All</button>
+        <button data-f="Attending">Attending</button>
+        <button data-f="Might Attend">Might</button>
+        <button data-f="Can't Make It">Can't</button>
+      </div>
+      <input type="search" id="q" placeholder="Search name, phone, email, message…">
+    </div>
+
+    <table>
+      <thead><tr><th>Guest</th><th>Status</th><th class="num">Adults</th><th class="num">Kids</th><th>Blessings</th><th>Replied</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty hide" id="empty">No RSVPs yet.</div>
+    <div class="foot" id="foot"></div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script>
+const API = window.RSVP_ENDPOINT;
+let all = [], filter = "all", password = "";
+try { password = sessionStorage.getItem("sahi-pw") || ""; } catch (e) {}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Apps Script: POST as text/plain (no CORS preflight); errors arrive as {error} with status 200.
+async function call(body) {
+  const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ ...body, password }) });
+  return r.json();
+}
+const when = iso => new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const pill = s => `<span class="pill ${s === "Attending" ? "a" : s === "Might Attend" ? "m" : "n"}">${esc(s)}</span>`;
+
+async function load() {
+  if (!API) { showLogin(); $("login-err").textContent = "Set RSVP_ENDPOINT in config.js first."; return false; }
+  if (!password) { showLogin(); return false; }
+  let res;
+  try { res = await call({ action: "list" }); }
+  catch (e) { $("foot").textContent = "Couldn't reach the RSVP sheet — retrying in 30s."; return true; }
+  if (res.error) { forget(); showLogin(); $("login-err").textContent = res.error; return false; }
+  all = res.rsvps;
+  $("login").classList.add("hide"); $("app").classList.remove("hide");
+  render();
+  return true;
+}
+
+function forget() { password = ""; try { sessionStorage.removeItem("sahi-pw"); } catch (e) {} }
+
+function showLogin() {
+  $("app").classList.add("hide"); $("login").classList.remove("hide"); $("pw").focus();
+}
+
+function render() {
+  const by = s => all.filter(r => r.status === s);
+  const sum = (rs, k) => rs.reduce((t, r) => t + (+r[k]), 0);
+  const yes = by("Attending"), maybe = by("Might Attend"), no = by("Can't Make It");
+  $("st-guests").textContent = sum(yes, "adults") + sum(yes, "kids");
+  $("st-guests-sub").textContent = `${sum(yes, "adults")} adults · ${sum(yes, "kids")} kids · ${yes.length} replies`;
+  $("st-maybe").textContent = sum(maybe, "adults") + sum(maybe, "kids");
+  $("st-maybe-sub").textContent = `guests · ${maybe.length} replies`;
+  $("st-no").textContent = no.length;
+  $("st-total").textContent = all.length;
+  $("st-total-sub").textContent = `up to ${sum(yes, "adults") + sum(yes, "kids") + sum(maybe, "adults") + sum(maybe, "kids")} guests`;
+
+  const q = $("q").value.trim().toLowerCase();
+  const rows = all.filter(r => (filter === "all" || r.status === filter) &&
+    (!q || [r.name, r.contact, r.message].join(" ").toLowerCase().includes(q)));
+
+  $("rows").innerHTML = rows.map(r => `<tr>
+    <td><div class="who">${esc(r.name)}</div><div class="contact">${esc(r.contact)}</div></td>
+    <td>${pill(r.status)}</td>
+    <td class="num" data-l="Adults">${r.adults}</td>
+    <td class="num" data-l="Kids">${r.kids}</td>
+    <td><div class="msg">${esc(r.message)}</div></td>
+    <td><div class="when" title="First replied ${esc(when(r.created_at))}">${esc(when(r.updated_at))}</div></td>
+    <td class="act"><button class="del" data-id="${r.id}" data-name="${esc(r.name)}" title="Remove">×</button></td>
+  </tr>`).join("");
+  $("empty").classList.toggle("hide", rows.length > 0);
+  $("empty").textContent = all.length ? "No replies match." : "No RSVPs yet.";
+  $("foot").textContent = `Showing ${rows.length} of ${all.length} · refreshed ${new Date().toLocaleTimeString()}`;
+}
+
+$("login-form").addEventListener("submit", async e => {
+  e.preventDefault(); $("login-err").textContent = "Checking…";
+  password = $("pw").value;
+  if (await load()) {
+    try { sessionStorage.setItem("sahi-pw", password); } catch (e) {}
+    $("pw").value = ""; $("login-err").textContent = "";
+  } else $("pw").select();
+});
+$("logout").onclick = () => { forget(); all = []; showLogin(); };
+$("csv").onclick = () => {
+  const q = v => { v = String(v ?? ""); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+  const lines = [["Name", "Phone / Email", "Status", "Adults", "Children", "Message", "First replied", "Last updated"]]
+    .concat(all.map(r => [r.name, r.contact, r.status, r.adults, r.kids, r.message,
+                          new Date(r.created_at).toLocaleString(), new Date(r.updated_at).toLocaleString()]));
+  const blob = new Blob(["\ufeff" + lines.map(l => l.map(q).join(",")).join("\r\n")], { type: "text/csv" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob),
+    download: `rsvps-${new Date().toISOString().slice(0, 10)}.csv` });
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$("tabs").onclick = e => {
+  const f = e.target.dataset.f; if (!f) return;
+  filter = f; [...$("tabs").children].forEach(b => b.classList.toggle("on", b === e.target)); render();
+};
+$("q").oninput = render;
+$("rows").onclick = async e => {
+  const b = e.target.closest(".del"); if (!b) return;
+  if (!confirm(`Remove ${b.dataset.name}'s RSVP? This can't be undone.`)) return;
+  const res = await call({ action: "delete", id: +b.dataset.id });
+  if (res.error) alert(res.error);
+  load();
+};
+
+load();
+setInterval(() => { if (!$("app").classList.contains("hide")) load(); }, 30000);
+</script>
+</body>
+</html>
