@@ -172,7 +172,6 @@ h2{font-family:var(--display);font-weight:400;color:var(--sindoor);font-size:cla
 .btn:hover{transform:translateY(-2px);background:var(--banti)}
 .btn.solid{background:var(--sindoor);color:#fff;border-color:var(--gold-light);box-shadow:0 3px 0 var(--sindoor-deep)}
 .btn.solid:hover{background:var(--sindoor-deep)}
-.btn:disabled{opacity:.6;cursor:wait}
 
 /* rituals: each card a different silk */
 .rituals{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:22px}
@@ -558,7 +557,7 @@ footer small{display:block;margin-top:18px;color:#ffd9a0;font-size:16px;font-sty
 
       <label class="field"><span>Blessings for the couple</span><textarea name="message" rows="3"></textarea></label>
 
-      <button class="btn solid" type="submit" id="rsvp-btn">Send RSVP</button>
+      <button class="btn solid" type="submit">Send RSVP</button>
       <p class="form-note" id="rsvp-note"></p>
     </form>
 
@@ -591,9 +590,6 @@ const CONFIG = {
   end:       "2026-11-22T14:00:00-08:00",
   venue: "Aria University, 1521 California Cir, Milpitas, CA 95035, USA",
   title: "Wedding of Mahitha & Sai Kumar",
-  // RSVP destination: the Google Apps Script URL, set in config.js.
-  rsvpEndpoint: window.RSVP_ENDPOINT || "",
-  rsvpFallback: "https://mahithasaikumarwedding.rsvpify.com",
 };
 
 /* garlands: marigold swags between hooks on a brass beam, jasmine strands at the
@@ -706,9 +702,9 @@ const CONFIG = {
   };
 })();
 
-/* RSVP */
+/* RSVP: send the reply to the Google Sheet (config.js) and say thank you */
 (function(){
-  const f = document.getElementById("rsvp-form"), note = document.getElementById("rsvp-note");
+  const f = document.getElementById("rsvp-form");
   const counts = { adults: 1, kids: 0 };
   f.querySelectorAll(".step").forEach(st => st.addEventListener("click", e => {
     const d = +e.target.dataset.d; if (!d) return;
@@ -716,41 +712,25 @@ const CONFIG = {
     counts[k] = Math.max(min, Math.min(15, counts[k] + d));
     st.querySelector("output").textContent = counts[k];
   }));
-  const sync = () => document.getElementById("guests-field")
-    .classList.toggle("hide", f.status.value === "Can't Make It");
-  f.querySelectorAll("[name=status]").forEach(r => r.addEventListener("change", sync));
+  f.querySelectorAll("[name=status]").forEach(r => r.addEventListener("change", () =>
+    document.getElementById("guests-field").classList.toggle("hide", f.status.value === "Can't Make It")));
 
-  if (!CONFIG.rsvpEndpoint) note.textContent = "You'll be taken to our RSVPify page to confirm.";
-
-  f.addEventListener("submit", async e => {
+  f.addEventListener("submit", e => {
     e.preventDefault();
     const name = f.name.value.trim();
-    if (!name) { f.name.focus(); note.textContent = "Please add your name."; return; }
+    if (!name) { f.name.focus(); document.getElementById("rsvp-note").textContent = "Please add your name."; return; }
     const coming = f.status.value !== "Can't Make It";
-    const data = { name, contact: f.contact.value.trim(), status: f.status.value,
-      adults: coming ? counts.adults : 0, kids: coming ? counts.kids : 0,
-      message: f.message.value.trim(), website: f.website.value };
-
-    if (!CONFIG.rsvpEndpoint) { window.open(CONFIG.rsvpFallback, "_blank", "noopener"); return; }
-
-    const btn = document.getElementById("rsvp-btn");
-    btn.disabled = true; btn.textContent = "Sending…"; note.textContent = "";
-    try {
-      const r = await fetch(CONFIG.rsvpEndpoint, { method: "POST",
-        // text/plain keeps this a "simple" request — Apps Script can't answer a CORS preflight
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "rsvp", ...data }) });
-      const res = await r.json().catch(() => ({}));
-      if (!r.ok || !res.ok) throw new Error(res.error || "");
-      f.classList.add("hide");
-      document.getElementById("thanks").classList.remove("hide");
-      document.getElementById("thanks-msg").textContent = coming
-        ? `We can't wait to see you, ${name}.`
-        : `We'll miss you, ${name} — thank you for your blessings.`;
-    } catch (err) {
-      btn.disabled = false; btn.textContent = "Send RSVP";
-      note.textContent = err.message || "That didn't go through — please try again in a moment.";
-    }
+    // text/plain keeps this a "simple" request, which Apps Script can accept cross-origin
+    if (window.RSVP_ENDPOINT) fetch(window.RSVP_ENDPOINT, { method: "POST", keepalive: true,
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "rsvp", name, contact: f.contact.value.trim(), status: f.status.value,
+        adults: coming ? counts.adults : 0, kids: coming ? counts.kids : 0,
+        message: f.message.value.trim(), website: f.website.value }) }).catch(() => {});
+    f.classList.add("hide");
+    document.getElementById("thanks").classList.remove("hide");
+    document.getElementById("thanks-msg").textContent = coming
+      ? `We can't wait to see you, ${name}.`
+      : `We'll miss you, ${name} — thank you for your blessings.`;
   });
 })();
 
